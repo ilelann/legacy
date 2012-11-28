@@ -649,7 +649,7 @@ inline token_range_t xml_element_linefeed(   const token_range_t&     /*entire_e
 #elif ADOBE_PLATFORM_MAC
         return static_token_range("&cr;");
 #elif   ADOBE_PLATFORM_UNIX || ADOBE_PLATFORM_LINUX || ADOBE_PLATFORM_BSD || ADOBE_PLATFORM_SOLARIS ||\
-        ADOBE_PLATFORM_IRIX || ADOBE_PLATFORM_HPUX || ADOBE_PLATFORM_CYGWIN || ADOBE_PLATFORM_AIX
+		ADOBE_PLATFORM_IRIX || ADOBE_PLATFORM_HPUX || ADOBE_PLATFORM_CYGWIN || ADOBE_PLATFORM_AIX || ADOBE_PLATFORM_WT
         return static_token_range("&lf;");
 #else
     #error "Line ending for platform unknown - please configure and report the results to stlab.adobe.com"

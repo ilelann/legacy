@@ -17,10 +17,6 @@
 #include <adobe/future/windows_cast.hpp>
 #include <adobe/placeable_concept.hpp>
 
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 /****************************************************************************************************/
 
 namespace {
@@ -119,7 +115,7 @@ reveal_t::reveal_t(const std::string&			name,
 
 /****************************************************************************************************/
 
-void reveal_t::initialize(HWND parent)
+void reveal_t::initialize(platform_display_type parent)
 {
     assert(!control_m);
 
@@ -135,7 +131,7 @@ void reveal_t::initialize(HWND parent)
     if (control_m == NULL)
         ADOBE_THROW_LAST_ERROR;
 
-    set_font(control_m, EP_EDITTEXT); // REVISIT (fbrereto) : a better type?
+    set_font_edittext(control_m);
 
     ::SetWindowSubclass(control_m, &reveal_subclass_proc, reinterpret_cast<UINT_PTR>(this), 0);
 

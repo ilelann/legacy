@@ -240,30 +240,78 @@ const widget_factory_t& default_asl_widget_factory()
         default_factory_s.reg(name_overlay, &overlay_factory, true, overlay_layout_attributes());
         default_factory_s.reg(name_row, &row_factory, true, row_layout_attributes());
 
-        default_factory_s.reg(name_button, &make_button);
+#ifndef ADOBE_PLATFORM_NO_BUTTON
+		default_factory_s.reg(name_button, &make_button);
+#endif
+#ifndef ADOBE_PLATFORM_NO_CHECKBOX
         default_factory_s.reg(name_checkbox, &make_checkbox);
+#endif
+#ifndef ADOBE_PLATFORM_NO_BUTTON
         default_factory_s.reg(name_control_button, &make_control_button);
-        default_factory_s.reg(name_dialog, &make_window, true, window_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_WINDOW
+		default_factory_s.reg(name_dialog, &make_window, true, window_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_DISPLAY_NUMBER
         default_factory_s.reg(name_display_number, &implementation::make_display_number);
+#endif
+#ifndef ADOBE_PLATFORM_NO_EDIT_NUMBER
         default_factory_s.reg(name_edit_number, &make_edit_number);
+#endif
+#ifndef ADOBE_PLATFORM_NO_EDIT_TEXT
         default_factory_s.reg(name_edit_text, &implementation::make_edit_text);
+#endif
+#ifndef ADOBE_PLATFORM_NO_GROUP
         default_factory_s.reg(name_group, &make_group, true, group_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_IMAGE
         default_factory_s.reg(name_image, &implementation::make_image_hack);
+#endif
+#ifndef ADOBE_PLATFORM_NO_TOGGLE
         default_factory_s.reg(name_toggle, &make_toggle);
+#endif
+#ifndef ADOBE_PLATFORM_NO_LABEL
         default_factory_s.reg(name_label, &implementation::make_label_hack);
+#endif
+#ifndef ADOBE_PLATFORM_NO_LINK
         default_factory_s.reg(name_link, &make_link, false, link_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_OPTIONAL_PANEL
         default_factory_s.reg(name_optional, &make_optional_panel, true, optional_panel_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_PANEL
         default_factory_s.reg(name_panel, &make_panel, true, panel_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_POPUP
         default_factory_s.reg(name_popup, &make_popup);
+#endif
+#ifndef ADOBE_PLATFORM_NO_PRESETS
         default_factory_s.reg(name_preset, &make_presets);
+#endif
+#ifndef ADOBE_PLATFORM_NO_PREVIEW
         default_factory_s.reg(name_preview, &make_preview);
+#endif
+#ifndef ADOBE_PLATFORM_NO_PROGRESS_BAR
         default_factory_s.reg(name_progress_bar, &make_progress_bar);
+#endif
+#ifndef ADOBE_PLATFORM_NO_RADIO_BUTTON
         default_factory_s.reg(name_radio_button, &make_radio_button);
+#endif
+#ifndef ADOBE_PLATFORM_NO_REVEAL
         default_factory_s.reg(name_reveal, &make_reveal);
+#endif
+#ifndef ADOBE_PLATFORM_NO_SEPARATOR
         default_factory_s.reg(name_separator, &make_separator, false, separator_layout_attributes());
+#endif
+#ifndef ADOBE_PLATFORM_NO_SLIDER
         default_factory_s.reg(name_slider, &make_slider);
+#endif
+#ifndef ADOBE_PLATFORM_NO_STATIC_TEXT
         default_factory_s.reg(name_static_text, &implementation::make_label_hack);
+#endif
+#ifndef ADOBE_PLATFORM_NO_TAB_GROUP
         default_factory_s.reg(name_tab_group, &make_tab_group, true, tab_group_layout_attributes());
+#endif
 
         inited = true;
     }

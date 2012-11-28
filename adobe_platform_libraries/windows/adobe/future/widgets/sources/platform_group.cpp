@@ -14,10 +14,6 @@
 #include <adobe/future/widgets/headers/display.hpp>
 // #include <adobe/future/windows_cast.hpp>
 
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 /****************************************************************************************************/
 
 namespace {
@@ -114,7 +110,7 @@ void group_t::measure(extents_t& result)
 
     // REVISIT (fbrereto) : A lot of static metrics values added here
 
-    result = measure_text(name_m, theme_m, ::GetParent(control_m));
+    result = measure_text(name_m, theme_m, get_parent_control(control_m));
 
     result.width() += 15;
 
@@ -154,7 +150,7 @@ platform_display_type insert<group_t>(display_t&             display,
     if (element.control_m == NULL)
         ADOBE_THROW_LAST_ERROR;
 
-    set_font(element.control_m, BP_GROUPBOX);
+    set_font_groupbox(element.control_m);
 
     ::SetWindowSubclass(element.control_m, &group_subclass_proc, reinterpret_cast<UINT_PTR>(&element), 0);
 

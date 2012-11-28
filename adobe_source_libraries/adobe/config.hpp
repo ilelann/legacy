@@ -40,7 +40,10 @@
 
 // Big thanks to Boost here for doing a majority of the work for us.
 
-#if defined(__CYGWIN__)
+#if defined ADOBE_PLATFORM_WT
+	// nothing to do
+
+#elif defined(__CYGWIN__)
     // Cygwin is not Win32
     #define ADOBE_PLATFORM_CYGWIN   1
 

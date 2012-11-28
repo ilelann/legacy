@@ -11,8 +11,6 @@
 
 /****************************************************************************************************/
 
-#include <windows.h>
-
 #include <adobe/config.hpp>
 
 #include <adobe/future/widgets/headers/button_helper.hpp>
@@ -26,7 +24,7 @@ namespace adobe {
 
 /****************************************************************************************************/
 
-struct button_t : boost::noncopyable
+struct button_t : ADOBE_PLATFORM_WIDGET_BASES
 {
     typedef any_regular_t model_type;
 
@@ -36,6 +34,8 @@ struct button_t : boost::noncopyable
              const button_state_descriptor_t* first,
              const button_state_descriptor_t* last,
              theme_t                          theme);
+
+    void on_clicked();
 
     void measure(extents_t& result);
 
@@ -53,7 +53,7 @@ struct button_t : boost::noncopyable
 
     bool handle_key(key_type key, bool pressed, modifiers_t modifiers);
 
-    HWND               control_m;
+    native_button_t control_m;
     theme_t            theme_m;
     button_state_set_t state_set_m;
     modifiers_t        modifier_mask_m;

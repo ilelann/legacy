@@ -7,14 +7,6 @@
 /****************************************************************************************************/
 
 #include <adobe/future/widgets/headers/platform_label.hpp>
-
-#include <windows.h>
-#include <uxtheme.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
-
 #include <adobe/future/widgets/headers/display.hpp>
 #include <adobe/future/widgets/headers/widget_utils.hpp>
 #include <adobe/future/widgets/headers/platform_metrics.hpp>
@@ -24,27 +16,6 @@
 #include <string>
 #include <cassert>
 
-/****************************************************************************************************/
-
-namespace {
-
-/****************************************************************************************************/
-
-LRESULT CALLBACK label_subclass_proc(HWND window, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR /* ptr */, DWORD_PTR /* ref */)
-{
-#ifndef NDEBUG
-    if (message == WM_SHOWWINDOW)
-    {
-        bool shown = wParam == 0;
-    }
-#endif
-
-    return ::DefSubclassProc(window, message, wParam, lParam);
-}
-
-/****************************************************************************************************/
-
-} // namespace
 
 /****************************************************************************************************/
 
@@ -68,7 +39,10 @@ label_t::label_t(const std::string& name,
 
 label_t::~label_t()
 {
-    ::DestroyWindow(window_m);
+// TODO : only widget which destroys .. don't know why
+#ifndef ADOBE_PLATFORM_WT 
+	::DestroyWindow(window_m);
+#endif
 }
 
 /****************************************************************************************************/
@@ -96,26 +70,13 @@ void measure(label_t& value, extents_t& result)
     //
     int uxtheme_type = EP_EDITTEXT;
     //
-    // Discover the size of the widget.
-    //
-    SIZE widget_size;
-    bool have_size = metrics::get_size(uxtheme_type, TS_DRAW, widget_size);
-    //
-    // Discover any margins of this widget.
-    //
-    MARGINS widget_margins;
-    bool have_margins = metrics::get_margins(uxtheme_type, widget_margins);
-    //
-    // Get the text metrics (and calculate the baseline of this widget)
-    //
-    TEXTMETRIC widget_tm;
-    bool have_tm = metrics::get_font_metrics(uxtheme_type, widget_tm);
-    //
     // We need the text dimensions to figure out what the width of the widget should
     // be.
     //
-    RECT text_extents;
-    RECT in_extents = {0,0,10000,10000};
+    place_data_liukahr_t text_extents;
+    place_data_liukahr_t in_extents;
+	width(in_extents) = 10000;
+	height(in_extents) = 10000;
     
     if(value.characters_m){
         std::wstring wrap(value.characters_m * 2, L'0');
@@ -123,7 +84,7 @@ void measure(label_t& value, extents_t& result)
             wrap.c_str(), text_extents, &in_extents);
         assert(have_extents);
         in_extents = text_extents;
-        in_extents.bottom = 10000;
+        height(in_extents) = 10000 - top(in_extents);
     }
     
     std::wstring wname;
@@ -132,17 +93,11 @@ void measure(label_t& value, extents_t& result)
     bool have_extents = metrics::get_text_extents(uxtheme_type,
         wname.c_str(), text_extents, &in_extents);
 
-
-    //
-    // Get any border the widget may have.
-    //
-    int border;
-    bool have_border = metrics::get_integer(uxtheme_type, TMT_BORDERSIZE, border);
     //
     // Now we can calculate the size we want to return.
     //
-    result.horizontal().length_m = text_extents.right - text_extents.left;
-    assert(result.horizontal().length_m);
+    result.width() = width(text_extents);
+    assert(result.width());
 }
 
 /****************************************************************************************************/
@@ -152,8 +107,7 @@ void measure_vertical(label_t& value, extents_t& calculated_horizontal,
 {
     assert(value.window_m);
 
-    RECT save_bounds;
-
+    place_data_t save_bounds;
     implementation::get_control_bounds(value.window_m, save_bounds);
 
     place_data_t static_bounds;
@@ -165,12 +119,11 @@ void measure_vertical(label_t& value, extents_t& calculated_horizontal,
 
     implementation::set_control_bounds(value.window_m, static_bounds);
 
-	HDC hdc(::GetWindowDC(value.window_m));
     std::string title(implementation::get_window_title(value.window_m));
 
     std::wstring wtitle;
     to_utf16(title.begin(), title.end(), std::back_inserter(wtitle));
-    RECT out_extent;
+    place_data_liukahr_t out_extent;
 
 //    metrics::set_theme_name(L"Edit");
     //
@@ -187,13 +140,7 @@ void measure_vertical(label_t& value, extents_t& calculated_horizontal,
 
     assert(have_tm);
 
-    const RECT in_extents =
-    {
-        left(static_bounds),
-        top(static_bounds),
-        right(static_bounds),
-        bottom(static_bounds)
-    };
+    const place_data_liukahr_t in_extents = static_bounds;
 
     bool have_extents = metrics::get_text_extents(uxtheme_type,
         wtitle.c_str(), out_extent, &in_extents);
@@ -201,7 +148,7 @@ void measure_vertical(label_t& value, extents_t& calculated_horizontal,
     assert(have_extents);
 
     extents_t::slice_t& vert = calculated_horizontal.vertical();
-    vert.length_m = out_extent.bottom - out_extent.top;
+    vert.length_m = height(out_extent);
     // set the baseline for the text
  
     metrics::set_window(value.window_m);
@@ -210,52 +157,33 @@ void measure_vertical(label_t& value, extents_t& calculated_horizontal,
         // distance from top to baseline
         vert.guide_set_m.push_back(widget_tm.tmHeight - widget_tm.tmDescent);
 
-    place_data_t restore_bounds;
-
-    top(restore_bounds) = save_bounds.top;
-    left(restore_bounds) = save_bounds.left;
-    width(restore_bounds) = save_bounds.right - save_bounds.left;
-    height(restore_bounds) = save_bounds.bottom - save_bounds.top;
-
-    implementation::set_control_bounds(value.window_m, restore_bounds);
+    implementation::set_control_bounds(value.window_m, save_bounds);
 }
 
 /****************************************************************************************************/
 
 void enable(label_t& value, bool make_enabled)
 {
-    ::EnableWindow(value.window_m, make_enabled);
+	set_control_enabled(value.window_m, make_enabled);
 }
 
 /****************************************************************************************************/
 
-void initialize(label_t& label, HWND parent)
+void initialize(label_t& label, platform_display_type parent)
 {
-    assert(!label.window_m);
+    assert(is_null_control(label.window_m));
 
-    label.window_m = ::CreateWindowExW(WS_EX_COMPOSITED, L"STATIC",
-                                       hackery::convert_utf(label.name_m).c_str(),
-                                       WS_CHILD | WS_VISIBLE,
-                                       0, 0, 100, 20,
-                                       parent,
-                                       NULL,
-                                       ::GetModuleHandle(NULL),
-                                       NULL);
+	label.window_m = implementation::make_label (parent, label.name_m);
 
-    if (label.window_m == NULL)
-        ADOBE_THROW_LAST_ERROR;
-
-    set_font(label.window_m, EP_EDITTEXT);
+    set_font_edittext(label.window_m);
 
     if (!label.alt_text_m.empty())
         implementation::set_control_alt_text(label.window_m, label.alt_text_m);
-
-    ::SetWindowSubclass(label.window_m, &label_subclass_proc, reinterpret_cast<UINT_PTR>(&label), 0);
 }
 
 /****************************************************************************************************/
 
-extents_t measure_text(const std::string& text, theme_t theme, HWND temp_parent)
+extents_t measure_text(const std::string& text, theme_t theme, platform_display_type temp_parent)
 {
     label_t          label(text, std::string(), 0, theme);
     extents_t result;
@@ -267,7 +195,7 @@ extents_t measure_text(const std::string& text, theme_t theme, HWND temp_parent)
 
 /****************************************************************************************************/
 
-void measure_label_text(const label_t& label, extents_t& result, HWND temp_parent)
+void measure_label_text(const label_t& label, extents_t& result, platform_display_type temp_parent)
 {
     label_t&  temp(const_cast<label_t&>(label));
 
@@ -298,7 +226,7 @@ platform_display_type insert<label_t>(display_t& display,
                                              platform_display_type& parent,
                                              label_t& element)
 {
-    HWND parent_hwnd(parent);
+	platform_display_type parent_hwnd(parent);
 
     initialize(element, parent_hwnd);
 

@@ -13,13 +13,11 @@
 
 #include <adobe/config.hpp>
 
-#define WINDOWS_LEAN_AND_MEAN 1
-#include <windows.h>
-
 #include <adobe/any_regular.hpp>
 #include <adobe/extents.hpp>
 #include <adobe/layout_attributes.hpp>
 #include <adobe/widget_attributes.hpp>
+#include <adobe/future/platform_primitives.hpp>
 
 #include <boost/function.hpp>
 
@@ -31,7 +29,7 @@ namespace adobe {
 
 /****************************************************************************************************/
 
-struct radio_button_t
+struct radio_button_t : ADOBE_PLATFORM_WIDGET_BASES
 {
     typedef any_regular_t                      model_type;
     typedef boost::function<void (const model_type&)> setter_type;
@@ -40,6 +38,8 @@ struct radio_button_t
                    const std::string&          alt_text,
                    const any_regular_t& set_value,
                    theme_t              theme);
+
+    void on_clicked();
 
     void measure(extents_t& result);
 
@@ -51,7 +51,7 @@ struct radio_button_t
 
     void monitor(const setter_type& proc);
 
-    HWND                 control_m;
+    native_radio_button_t control_m;
     std::string          name_m;
     std::string          alt_text_m;
     any_regular_t set_value_m;

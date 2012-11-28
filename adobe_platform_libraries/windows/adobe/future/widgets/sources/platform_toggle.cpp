@@ -8,12 +8,6 @@
 
 #include <adobe/future/widgets/headers/platform_toggle.hpp>
 
-#include <windows.h>
-#include <uxtheme.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 #include <adobe/future/windows_graphic_utils.hpp>
 #include <adobe/future/widgets/headers/button_helper.hpp>
 #include <adobe/future/widgets/headers/display.hpp>
@@ -27,7 +21,7 @@ namespace {
 
 const adobe::toggle_t::image_type& current_image(adobe::toggle_t& toggle)
 {
-    if (::IsWindowEnabled(toggle.control_m))
+	if (adobe::get_control_enabled(toggle.control_m))
     {
         if (toggle.last_m == toggle.value_on_m)
             return toggle.image_on_m;
@@ -44,7 +38,7 @@ const adobe::toggle_t::image_type& current_image(adobe::toggle_t& toggle)
 
 HBITMAP current_bitmap(adobe::toggle_t& toggle)
 {
-    if (::IsWindowEnabled(toggle.control_m))
+	if (adobe::get_control_enabled(toggle.control_m))
     {
         if (toggle.last_m == toggle.value_on_m)
             return toggle.bitmap_on_m;
@@ -110,10 +104,12 @@ toggle_t::toggle_t(const std::string&  alt_text,
     image_on_m(image_on),
     image_off_m(image_off),
     image_disabled_m(image_disabled),
-    value_on_m(value_on),
-    bitmap_on_m(to_bitmap(image_on)),
+    value_on_m(value_on)
+#ifndef ADOBE_PLATFORM_WT
+    ,bitmap_on_m(to_bitmap(image_on)),
     bitmap_off_m(to_bitmap(image_off)),
     bitmap_disabled_m(to_bitmap(image_disabled))
+#endif
 { }
 
 /****************************************************************************************************/
@@ -124,10 +120,12 @@ void toggle_t::measure(extents_t& result)
 
     result = extents_t();
 
+#ifndef ADOBE_PLATFORM_WT
     const adobe::toggle_t::image_type& image(current_image(*this));
 
     result.height() = static_cast<long>(image.height());
     result.width() = static_cast<long>(image.width());
+#endif
 }
 
 /****************************************************************************************************/
@@ -143,7 +141,7 @@ void toggle_t::enable(bool make_enabled)
 {
     assert(control_m);
 
-    EnableWindow(control_m, make_enabled);
+	set_control_enabled(control_m, make_enabled);
 
     ::SendMessage(control_m, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM) current_bitmap(*this));
 }
@@ -192,7 +190,7 @@ platform_display_type insert<toggle_t>(display_t&             display,
     if (element.control_m == NULL)
         ADOBE_THROW_LAST_ERROR;
 
-    set_font(element.control_m, EP_EDITTEXT); // REVISIT (fbrereto) : a better type?
+    set_font_edittext(element.control_m); // REVISIT (fbrereto) : a better type?
 
     ::SetWindowSubclass(element.control_m, &toggle_subclass_proc, reinterpret_cast<UINT_PTR>(&element), 0);
 

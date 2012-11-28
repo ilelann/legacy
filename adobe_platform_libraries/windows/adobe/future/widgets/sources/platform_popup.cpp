@@ -6,14 +6,6 @@
 
 /****************************************************************************************************/
 
-#define WINDOWS_LEAN_AND_MEAN 1
-
-#include <windows.h>
-#include <Commctrl.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 #include <adobe/future/widgets/headers/display.hpp>
 #include <adobe/future/widgets/headers/widget_utils.hpp>
 #include <adobe/future/widgets/headers/platform_metrics.hpp>
@@ -68,7 +60,7 @@ LRESULT CALLBACK popup_subclass_proc(HWND window, UINT message, WPARAM wParam, L
             control.value_proc_m(control.menu_items_m.at(new_index).second);
 
         if (control.extended_value_proc_m)
-            control.extended_value_proc_m(control.menu_items_m.at(new_index).second, adobe::modifier_state());
+			control.extended_value_proc_m(control.menu_items_m.at(new_index).second, adobe::implementation::modifier_state());
     }
 
     return ::DefSubclassProc(window, message, wParam, lParam);
@@ -94,7 +86,7 @@ void initialize(adobe::popup_t& control, HWND parent)
 
     ::SetWindowSubclass(control.control_m, popup_subclass_proc, reinterpret_cast<UINT_PTR>(&control), 0);
 
-    adobe::set_font(control.control_m, CP_DROPDOWNBUTTON);
+    adobe::set_font_dropdownbutton(control.control_m);
 
     if (!control.alt_text_m.empty())
         adobe::implementation::set_control_alt_text(control.control_m, control.alt_text_m);
@@ -203,7 +195,7 @@ void popup_t::measure(extents_t& result)
     //
     menu_item_set_t::iterator first(menu_items_m.begin());
     menu_item_set_t::iterator last(menu_items_m.end());
-    RECT largest_extents = { 0, 0, 0, 0 };
+    place_data_liukahr_t largest_extents;
     bool have_extents = false;
     //
     // Now iterate through all of our text.
@@ -213,7 +205,7 @@ void popup_t::measure(extents_t& result)
         //
         // Discover the extents of this text!
         //
-        RECT extents;
+        place_data_liukahr_t extents;
         if (metrics::get_text_extents(CP_DROPDOWNBUTTON, hackery::convert_utf(first->first), extents))
         {
             //
@@ -221,7 +213,7 @@ void popup_t::measure(extents_t& result)
             // Now we just need to see if they are larger than the
             // ones we already have.
             //
-            if ((extents.right - extents.left) > (largest_extents.right - largest_extents.left))
+            if (width(extents) > width(largest_extents))
                 largest_extents = extents;
             have_extents = true;
         }
@@ -257,7 +249,7 @@ void popup_t::measure(extents_t& result)
         //
         // Figure out the dimensions for the entire control.
         //
-        result.width() = text.left + largest_extents.right - largest_extents.left + cbi.rcButton.right - cbi.rcButton.left;
+        result.width() = text.left + width(largest_extents) + cbi.rcButton.right - cbi.rcButton.left;
         result.height() = wi.rcWindow.bottom - wi.rcWindow.top;
         //
         // Deduce the baseline from the text rectangle.
@@ -285,7 +277,7 @@ void popup_t::measure(extents_t& result)
     // the widgets in set_bounds.
     //
     extents_t label_bounds;
-    measure_label_text(name_m, label_bounds, ::GetParent(control_m));
+    measure_label_text(name_m, label_bounds, get_parent_control(control_m));
     static_height_m = label_bounds.height();
     static_baseline_m = label_bounds.vertical().guide_set_m[0];
     //

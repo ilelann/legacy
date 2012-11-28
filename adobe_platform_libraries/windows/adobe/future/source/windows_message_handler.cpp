@@ -18,7 +18,13 @@ namespace adobe {
 	
 message_handler_t::message_handler_t(callback_t callback) :
 	property_m(),
+#if defined ADOBE_PLATFORM_WT
 	callback_m(callback)
+#elif defined ADOBE_PLATFORM_WIN
+	callback_m(next_proc_handler(callback))
+#else
+#error "Unknown platform"
+#endif
 { }
 
 /**************************************************************************************************/

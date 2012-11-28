@@ -325,7 +325,7 @@ dialog_result_t modal_dialog_t::go(std::istream& layout, std::istream& sheet)
                 {
                     special_key_handled = keyboard_t::get().dispatch(key_type(msg.wParam),
                                                                      msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN,
-                                                                     modifier_state(),
+																	 implementation::modifier_state(),
                                                                      any_regular_t(cntl));
                 }
 

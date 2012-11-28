@@ -6,14 +6,6 @@
 
 /****************************************************************************************************/
 
-#define WINDOWS_LEAN_AND_MEAN 1
-
-#include <windows.h>
-#include <commctrl.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 #include <adobe/future/widgets/headers/platform_separator.hpp>
 #include <adobe/future/widgets/headers/display.hpp>
 
@@ -63,9 +55,16 @@ platform_display_type insert<separator_t>(display_t&             display,
                                                  platform_display_type&  parent,
                                                  separator_t&     element)
 {
-    HWND parent_hwnd(parent);
+    platform_display_type parent_hwnd(parent);
 
     assert(!element.control_m);
+
+#if defined ADOBE_PLATFORM_WT
+
+	element.control_m = new Wt::Ext::Splitter();
+	parent->addChild (element.control_m);
+
+#elif defined ADOBE_PLATFORM_WIN
 
     element.control_m = ::CreateWindowEx(WS_EX_COMPOSITED,
                                          WC_STATIC,
@@ -77,10 +76,15 @@ platform_display_type insert<separator_t>(display_t&             display,
                                          ::GetModuleHandle(NULL),
                                          NULL);
 
-    if (element.control_m == NULL)
+#elif
+#	error "Unknown platform"
+#endif
+
+	if (element.control_m == NULL)
         ADOBE_THROW_LAST_ERROR;
 
-    return display.insert(parent, element.control_m);
+
+	return display.insert(parent, element.control_m);
 }
 
 /****************************************************************************************************/

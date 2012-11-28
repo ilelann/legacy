@@ -6,14 +6,6 @@
 
 /****************************************************************************************************/
 
-#define WINDOWS_LEAN_AND_MEAN 1
-
-#include <windows.h>
-#include <commctrl.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 #include <adobe/future/widgets/headers/platform_progress_bar.hpp>
 #include <adobe/future/widgets/headers/display.hpp>
 
@@ -87,8 +79,14 @@ progress_bar_t::progress_bar_t(pb_style_t bar_style,
 
 /****************************************************************************************************/
 
-void progress_bar_t::initialize(HWND parent)
+void progress_bar_t::initialize(platform_display_type parent)
 {
+#if defined ADOBE_PLATFORM_WT
+
+	control_m = new Wt::Ext::ProgressDialog();
+	parent->addChild (contorl_m);
+
+#elif defined ADOBE_PLATFORM_WIN
     assert(!control_m);
 
     DWORD style(PBS_SMOOTH);
@@ -109,7 +107,7 @@ void progress_bar_t::initialize(HWND parent)
     if (control_m == NULL)
         ADOBE_THROW_LAST_ERROR;
 
-    set_font(control_m, PP_BAR);
+    set_font_progressbar(control_m);
 
     if(bar_style_m == pb_style_indeterminate_bar_s)
     {
@@ -128,6 +126,9 @@ void progress_bar_t::initialize(HWND parent)
         (LPARAM) MAKELPARAM (0, 100)   // = (LPARAM) MAKELPARAM (nMinRange, nMaxRange)
         );
     }
+#elif
+#	error "Unknown platform"
+#endif
 }
 
 /****************************************************************************************************/
@@ -149,7 +150,7 @@ platform_display_type insert<progress_bar_t>(display_t&              display,
                                                     platform_display_type&  parent,
                                                     progress_bar_t&  element)
 {
-    HWND parent_hwnd(parent);
+    platform_display_type parent_hwnd(parent);
 
     element.initialize(parent_hwnd);
 

@@ -60,25 +60,25 @@ struct progress_bar_t : boost::noncopyable
 {
     typedef     progress_bar_t   widget_type_t;
     typedef     any_regular_t    model_type;
-    
-                progress_bar_t(pb_style_t bar_style, 
+
+                progress_bar_t(pb_style_t bar_style,
                                bool is_vertical,
                                const value_range_format_t& format,
                                unsigned long min,
                                unsigned long max,
                                theme_t theme);
-   
+
     void        measure(extents_t& result);
     void        place(const place_data_t& place_data);
 
     void        display(const any_regular_t& value);
 
-    void        initialize(HWND parent);                         
+    void        initialize(platform_display_type parent);
 
     void        set_min_value(long min_value);
     void        set_max_value(long max_value);
 
-    HWND                        control_m;
+    platform_display_type                        control_m;
 
 private:
     pb_style_t                  bar_style_m;

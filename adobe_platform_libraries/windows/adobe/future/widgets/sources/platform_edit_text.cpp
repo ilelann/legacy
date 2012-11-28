@@ -7,13 +7,6 @@
 /*************************************************************************************************/
 
 #include <adobe/future/widgets/headers/platform_edit_text.hpp>
-
-#include <windows.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-#include <tchar.h>
-
 #include <adobe/future/widgets/headers/display.hpp>
 #include <adobe/placeable_concept.hpp>
 #include <adobe/future/widgets/headers/platform_label.hpp>
@@ -87,7 +80,7 @@ void edit_text_t::edit_text_label_hit(modifiers_t)
 
 /****************************************************************************************************/
 
-void edit_text_t::initialize(HWND parent)
+void edit_text_t::initialize(platform_display_type parent)
 {
 	if (using_label_m)
         signal_label_hit(boost::bind(&edit_text_t::edit_text_label_hit, this, _1));
@@ -158,7 +151,7 @@ void edit_text_t::measure(extents_t& result)
     //
     if (!using_label_m) return;
     extents_t label_bounds;
-    measure_label_text(get_label(), label_bounds, ::GetParent(control_m));
+    measure_label_text(get_label(), label_bounds, get_parent_control(control_m));
     //
     // Make sure that the height can accomodate both the label
     // and the edit widget.
@@ -258,7 +251,7 @@ void edit_text_t::set_theme(theme_t theme)
 {
     theme_m = theme;
 
-    set_font(control_m, EP_EDITTEXT);
+    set_font_edittext(control_m);
 
 //    if (using_label_m)
 //        get_label() = label_t(get_control_string(get_label()), alt_text_m, 0, theme_m);
@@ -496,7 +489,7 @@ extents_t calculate_edit_bounds(HWND control, int cols, int rows)
     // can correctly calculate the baseline.
     //
     TEXTMETRIC font_metrics;
-    RECT extents = { 0 };
+    place_data_liukahr_t extents;
     int border = 0;
     if (!metrics::set_window(control)) return result;
     if (!metrics::get_text_extents(EP_EDITTEXT, std::wstring(L"0", cols), extents)) return result;
@@ -517,7 +510,7 @@ extents_t calculate_edit_bounds(HWND control, int cols, int rows)
     offsets.right = wi.rcWindow.right - wi.rcClient.right;
 
     result.height() = offsets.top + offsets.bottom + (rows * font_metrics.tmHeight) + em_rect.top + border;
-    result.width() = (extents.right - extents.left) + offsets.left + offsets.right;
+    result.width() = width(extents) + offsets.left + offsets.right;
     result.vertical().guide_set_m.push_back(offsets.top + font_metrics.tmAscent + border);
 
     return result;

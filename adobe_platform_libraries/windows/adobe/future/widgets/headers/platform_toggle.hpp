@@ -12,12 +12,10 @@
 /****************************************************************************************************/
 
 #include <adobe/config.hpp>
-
-#include <windows.h>
-
 #include <adobe/any_regular.hpp>
 #include <adobe/layout_attributes.hpp>
 #include <adobe/widget_attributes.hpp>
+#include <adobe/future/platform_primitives.hpp>
 
 #include <boost/function.hpp>
 #include <boost/gil/gil_all.hpp>
@@ -34,7 +32,11 @@ struct toggle_t
 
     typedef boost::function<void (const model_type&)> setter_type;
 
+#ifdef ADOBE_PLATFORM_WT
+    typedef std::string image_type;
+#else
     typedef boost::gil::rgba8_image_t image_type;
+#endif
 
     toggle_t(const std::string&  alt_text,
              const any_regular_t value_on,
@@ -54,7 +56,7 @@ struct toggle_t
     void display(const any_regular_t& to_value);
 
 #ifndef ADOBE_NO_DOCUMENTATION
-    HWND                       control_m;
+    platform_display_type      control_m;
     theme_t                    theme_m;
     std::string                alt_text_m;
     image_type                 image_on_m;
@@ -63,9 +65,11 @@ struct toggle_t
     setter_type                setter_proc_m;
     any_regular_t              value_on_m;
     any_regular_t              last_m;
+#ifndef ADOBE_PLATFORM_WT
     HBITMAP                    bitmap_on_m;
     HBITMAP                    bitmap_off_m;
     HBITMAP                    bitmap_disabled_m;
+#endif
 #endif
 };
 

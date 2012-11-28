@@ -6,27 +6,27 @@
 
 /****************************************************************************************************/
 
-#define WINDOWS_LEAN_AND_MEAN 1
-
-#include <windows.h>
-#include <commctrl.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 #include <adobe/algorithm.hpp>
+#include <adobe/algorithm/find_match.hpp>
 
 #include <adobe/future/widgets/headers/platform_tab_group.hpp>
 #include <adobe/future/widgets/headers/platform_label.hpp>
 #include <adobe/future/widgets/headers/display.hpp>
 
-#include <adobe/algorithm/find_match.hpp>
+/****************************************************************************************************/
+
+namespace {
 
 /****************************************************************************************************/
 
-namespace adobe {
+#ifdef ADOBE_PLATFORM_WT
 
-/****************************************************************************************************/
+void setup_callbacks(adobe::tab_group_t & element)
+{
+	element.control_m->currentChanged().connect(&element, &adobe::tab_group_t::on_tab_changed);
+}
+
+#else
 
 LRESULT CALLBACK tab_group_subclass_proc(HWND     window,
                                          UINT     message,
@@ -35,7 +35,7 @@ LRESULT CALLBACK tab_group_subclass_proc(HWND     window,
                                          UINT_PTR ptr,
                                          DWORD_PTR /* ref */)
 {
-    tab_group_t& tab_group(*reinterpret_cast<tab_group_t*>(ptr));
+	adobe::tab_group_t& tab_group(*reinterpret_cast<adobe::tab_group_t*>(ptr));
     NMHDR*                         notice((NMHDR*) lParam);
 
     //
@@ -47,9 +47,7 @@ LRESULT CALLBACK tab_group_subclass_proc(HWND     window,
         if (notice->code == TCN_SELCHANGE)
         {
             long index(static_cast<long>(::SendMessage(tab_group.control_m, TCM_GETCURSEL, 0, 0)));
-
-            if (!tab_group.value_proc_m.empty())
-                tab_group.value_proc_m(tab_group.items_m[index].value_m);
+			tab_group.on_tab_changed (index);
         }
 
         return 0;
@@ -58,13 +56,27 @@ LRESULT CALLBACK tab_group_subclass_proc(HWND     window,
     {
         LRESULT forward_result(0);
 
-        if (forward_message(message, wParam, lParam, forward_result))
+		if (adobe::forward_message(message, wParam, lParam, forward_result))
             return forward_result;
     }
 
     return ::DefSubclassProc(window, message, wParam, lParam);
 }
 
+void setup_callbacks(adobe::tab_group_t & element)
+{
+	::SetWindowSubclass(element.control_m, &tab_group_subclass_proc, reinterpret_cast<UINT_PTR>(&element), 0);
+}
+
+#endif
+
+/****************************************************************************************************/
+
+} // namespace
+
+/****************************************************************************************************/
+
+namespace adobe {
 
 /****************************************************************************************************/
 
@@ -75,9 +87,23 @@ tab_group_t::tab_group_t(const tab_t* first, const tab_t* last, theme_t theme)
 
 /****************************************************************************************************/
 
-void tab_group_t::initialize(HWND parent)
+void tab_group_t::on_tab_changed (int index)
 {
-    assert (!control_m);
+	if (!value_proc_m.empty())
+		value_proc_m(items_m[index].value_m);
+}
+
+/****************************************************************************************************/
+
+void tab_group_t::initialize(platform_display_type parent)
+{
+    assert (is_null_control(control_m));
+
+#if defined ADOBE_PLATFORM_WT
+
+	control_m = new Wt::WTabWidget(dynamic_cast<Wt::WContainerWidget*>(parent));
+
+#else
 
     control_m = ::CreateWindowEx(WS_EX_COMPOSITED | WS_EX_CONTROLPARENT,
                                  WC_TABCONTROL,
@@ -88,13 +114,14 @@ void tab_group_t::initialize(HWND parent)
                                  0,
                                  ::GetModuleHandle(NULL),
                                  NULL);
+#endif
 
-    if (control_m == NULL)
+    if (is_null_control(control_m))
         ADOBE_THROW_LAST_ERROR;
 
-    set_font(control_m, TABP_TABITEM);
+    set_font_tabitem(control_m);
 
-    ::SetWindowSubclass(control_m, &tab_group_subclass_proc, reinterpret_cast<UINT_PTR>(this), 0);
+	setup_callbacks(*this);
 
     for (tab_set_t::iterator first(items_m.begin()), last(items_m.end()); first != last; ++first)
     {
@@ -119,7 +146,7 @@ void tab_group_t::measure(extents_t& result)
     for (tab_set_t::iterator first(items_m.begin()), last(items_m.end()); first != last; ++first)
     {
         extents_t attrs;
-        measure_label_text(label_t(first->name_m, std::string(), 0, theme_m), attrs, ::GetParent(control_m));
+        measure_label_text(label_t(first->name_m, std::string(), 0, theme_m), attrs, get_parent_control(control_m));
 
         result.width() += attrs.width() + 18;
         result.height() = (std::max)(result.height(), attrs.height());
@@ -167,7 +194,7 @@ platform_display_type insert<tab_group_t>(display_t&             display,
                                                 platform_display_type&  parent,
                                                 tab_group_t&     element)
 {
-    HWND parent_hwnd(parent);
+    platform_display_type parent_hwnd(parent);
 
     element.initialize(parent_hwnd);
 

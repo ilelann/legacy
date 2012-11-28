@@ -6,12 +6,6 @@
 
 /****************************************************************************************************/
 
-#include <windows.h>
-#include <uxtheme.h>
-#include <tmschema.h>
-#define SCHEME_STRINGS 1
-#include <tmschema.h> //Yes, we include this twice -- read the top of the file
-
 #include <adobe/future/widgets/headers/platform_image.hpp>
 
 #include <adobe/future/widgets/headers/display.hpp>
@@ -87,7 +81,7 @@ image_t::image_t(const view_model_type& image) :
     enabled_m(false)
 {
     handler_m.reset(new message_handler_t(boost::bind(&image_t::handle_event,
-                                                      boost::ref(*this), _1, _2, _3, _4, _5)));
+                                                      boost::ref(*this), _1, _2, _3, _4)));
 
     metadata_m.insert(dictionary_t::value_type(static_name_t("delta_x"), any_regular_t(0)));
     metadata_m.insert(dictionary_t::value_type(static_name_t("delta_y"), any_regular_t(0)));
@@ -98,7 +92,7 @@ image_t::image_t(const view_model_type& image) :
 
 /****************************************************************************************************/
 
-LRESULT image_t::handle_event(HWND window, UINT message, WPARAM wparam, LPARAM lparam, WNDPROC next_proc)
+LRESULT image_t::handle_event(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
     if (message == WM_NCHITTEST)
     {
@@ -152,7 +146,7 @@ LRESULT image_t::handle_event(HWND window, UINT message, WPARAM wparam, LPARAM l
         return 0;
     }
 
-    return ::CallWindowProc(next_proc, window, message, wparam, lparam);
+	return 0;
 }
 
 /****************************************************************************************************/

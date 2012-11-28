@@ -66,7 +66,7 @@ namespace adobe {
 
     void                enable(bool make_enabled);
 
-    HWND                 control_m;
+    platform_display_type                 control_m;
     theme_t              theme_m;
     label_t              name_m;
     std::string          alt_text_m;
